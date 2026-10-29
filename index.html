@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT InOut System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+  <nav class="bg-blue-900 text-white p-4 shadow-md">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold">🛡️ IT InOut System</h1>
+      <span class="text-sm bg-blue-800 px-3 py-1 rounded-full">Secure Portal</span>
+    </div>
+  </nav>
+
+  <div class="container mx-auto p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-gray-700">Daftar Karyawan</h2>
+      <div class="flex gap-2">
+        <button onclick="loadData()" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded shadow hover:bg-gray-100 flex items-center gap-2">
+          <span>🔄 Refresh</span>
+        </button>
+        <button onclick="openOnboardingModal()" class="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 flex items-center gap-2">
+          <span>+ Karyawan Baru</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <table class="min-w-full text-left border-collapse">
+        <thead class="bg-gray-100 border-b">
+          <tr>
+            <th class="p-4 font-semibold text-gray-600">Nama / Divisi</th>
+            <th class="p-4 font-semibold text-gray-600">Email Workspace</th>
+            <th class="p-4 font-semibold text-gray-600 text-center">Status Workspace</th>
+            <th class="p-4 font-semibold text-gray-600 text-center">Progress Offboarding</th>
+            <th class="p-4 font-semibold text-gray-600 text-center">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody" class="divide-y divide-gray-200">
+          <tr>
+            <td colspan="5" class="p-8 text-center text-gray-500 flex justify-center items-center gap-3">
+              <div class="loader"></div> Mengambil data dari server...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal Offboarding -->
+  <div id="modalClearance" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center backdrop-blur-sm">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+      <h3 class="text-xl font-bold mb-1" id="modalName">Nama Karyawan</h3>
+      <p class="text-sm text-gray-500 mb-4" id="modalEmail">email@domain.com</p>
+      
+      <div class="p-4 border rounded-md bg-gray-50 mb-4">
+        <div class="flex justify-between items-center mb-2">
+          <span class="font-semibold text-gray-700">1. Google Workspace</span>
+          <span id="badgeWorkspace" class="text-xs px-2 py-1 rounded bg-green-100 text-green-700 font-bold">Active</span>
+        </div>
+        <button id="btnSuspend" onclick="suspendWorkspace()" class="w-full bg-red-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-red-700 transition">
+          Suspend Akun Workspace
+        </button>
+      </div>
+
+      <div class="p-4 border rounded-md bg-gray-50 mb-4">
+        <span class="font-semibold text-gray-700 block mb-3">2. Cabut Akses Lokal</span>
+        <label class="flex items-center space-x-3 mb-3 cursor-pointer">
+          <input type="checkbox" id="checkFinger" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+          <span class="text-gray-700">Fingerprint (ATT) Dihapus</span>
+        </label>
+        <label class="flex items-center space-x-3 mb-4 cursor-pointer">
+          <input type="checkbox" id="checkWifi" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+          <span class="text-gray-700">Wi-Fi (Winbox) Dihapus</span>
+        </label>
+        <label class="block text-sm text-gray-600 mb-1">Catatan IT:</label>
+        <input type="text" id="inputNotes" class="w-full border p-2 rounded text-sm focus:ring focus:ring-blue-200">
+      </div>
+
+      <input type="hidden" id="currentRowIndex">
+      <div class="flex justify-end gap-2">
+        <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Batal</button>
+        <button onclick="saveChecklist()" id="btnSaveChecklist" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Simpan Status</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Onboarding -->
+  <div id="modalOnboarding" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center backdrop-blur-sm">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+      <h3 class="text-xl font-bold mb-4 text-gray-800">Form Onboarding Karyawan</h3>
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
+        <input type="text" id="newNama" class="w-full border border-gray-300 p-2 rounded focus:ring focus:ring-blue-200" placeholder="Budi Santoso">
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Divisi / Jabatan</label>
+        <input type="text" id="newDivisi" class="w-full border border-gray-300 p-2 rounded focus:ring focus:ring-blue-200" placeholder="IT Support">
+      </div>
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Email Workspace</label>
+        <input type="email" id="newEmail" class="w-full border border-gray-300 p-2 rounded focus:ring focus:ring-blue-200" placeholder="contoh@domain.com">
+      </div>
+      <div class="flex justify-end gap-2">
+        <button onclick="closeOnboardingModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Batal</button>
+        <button onclick="submitOnboarding()" id="btnSubmitOnboarding" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Simpan ke Database</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // MASUKKAN URL WEB APP ANDA DI SINI
+    const GAS_URL = "YOUR_GAS_WEB_APP_URL_HERE";
+    let currentData = [];
+
+    function getProgressBar(percent) {
+      let color = percent == 100 ? 'bg-green-500' : (percent > 0 ? 'bg-yellow-400' : 'bg-gray-200');
+      return `
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+          <div class="${color} h-2.5 rounded-full" style="width: ${percent || 0}%"></div>
+        </div>
+        <span class="text-xs text-gray-500 mt-1 block">${percent || 0}% Offboarded</span>
+      `;
+    }
+
+    async function loadData() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center"><div class="loader inline-block align-middle mr-2"></div> Memuat...</td></tr>`;
+      
+      try {
+        const response = await fetch(GAS_URL, { method: 'GET', redirect: 'follow' });
+        const data = await response.json();
+        currentData = data;
+        tbody.innerHTML = '';
+        
+        if(data.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500">Belum ada data. Silakan tambah karyawan baru.</td></tr>`;
+          return;
+        }
+
+        data.forEach(row => {
+          if(!row.ID_Karyawan) return;
+          let workspaceBadge = row.Status_Workspace === 'Suspended' ? 
+            `<span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full font-bold">Suspended</span>` : 
+            `<span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-bold">Active</span>`;
+
+          tbody.innerHTML += `
+            <tr class="hover:bg-gray-50 border-b">
+              <td class="p-4"><p class="font-bold text-gray-800">${row.Nama_Lengkap}</p><p class="text-xs text-gray-500">${row.Divisi}</p></td>
+              <td class="p-4 text-sm">${row.Email_Workspace}</td>
+              <td class="p-4 text-center">${workspaceBadge}</td>
+              <td class="p-4 text-center w-48">${getProgressBar(row.Progress_Percent)}</td>
+              <td class="p-4 text-center">
+                <button onclick='openModal(${row.rowIndex})' class="bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1 rounded text-sm font-semibold hover:bg-blue-600 hover:text-white transition">Kelola Offboard</button>
+              </td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Gagal memuat data.</td></tr>`;
+      }
+    }
+
+    async function postToGAS(payload, buttonElement) {
+      const originalText = buttonElement.innerText;
+      buttonElement.innerText = "Memproses...";
+      buttonElement.disabled = true;
+
+      try {
+        const response = await fetch(GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if(result.success) {
+          loadData();
+        } else {
+          alert("Error: " + result.error);
+        }
+      } catch (err) {
+        alert("Gagal menghubungi server.");
+      } finally {
+        buttonElement.innerText = originalText;
+        buttonElement.disabled = false;
+      }
+    }
+
+    // ONBOARDING
+    function openOnboardingModal() {
+      document.getElementById('newNama').value = '';
+      document.getElementById('newDivisi').value = '';
+      document.getElementById('newEmail').value = '';
+      document.getElementById('modalOnboarding').classList.remove('hidden');
+    }
+
+    function closeOnboardingModal() { document.getElementById('modalOnboarding').classList.add('hidden'); }
+
+    function submitOnboarding() {
+      const payload = {
+        action: 'addOnboarding',
+        nama: document.getElementById('newNama').value,
+        divisi: document.getElementById('newDivisi').value,
+        email: document.getElementById('newEmail').value
+      };
+      if(!payload.nama || !payload.email) return alert("Nama dan Email wajib diisi!");
+      postToGAS(payload, document.getElementById('btnSubmitOnboarding'));
+      closeOnboardingModal();
+    }
+
+    // OFFBOARDING
+    function openModal(rowIndex) {
+      const row = currentData.find(r => r.rowIndex === rowIndex);
+      if(!row) return;
+      document.getElementById('currentRowIndex').value = row.rowIndex;
+      document.getElementById('modalName').innerText = row.Nama_Lengkap;
+      document.getElementById('modalEmail').innerText = row.Email_Workspace;
+      document.getElementById('checkFinger').checked = row.Status_Finger === true;
+      document.getElementById('checkWifi').checked = row.Status_Wifi === true;
+      document.getElementById('inputNotes').value = row.Notes || '';
+      
+      const badge = document.getElementById('badgeWorkspace');
+      const btnSuspend = document.getElementById('btnSuspend');
+      if(row.Status_Workspace === 'Suspended') {
+        badge.className = "text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-800 font-bold";
+        badge.innerText = "Suspended";
+        btnSuspend.style.display = "none";
+      } else {
+        badge.className = "text-xs px-2 py-1 rounded bg-green-100 text-green-700 font-bold";
+        badge.innerText = "Active";
+        btnSuspend.style.display = "block";
+      }
+      document.getElementById('modalClearance').classList.remove('hidden');
+    }
+
+    function closeModal() { document.getElementById('modalClearance').classList.add('hidden'); }
+
+    function suspendWorkspace() {
+      if(!confirm("Yakin ingin men-suspend akun ini?")) return;
+      const payload = {
+        action: 'suspendWorkspace',
+        rowIndex: parseInt(document.getElementById('currentRowIndex').value),
+        email: document.getElementById('modalEmail').innerText
+      };
+      postToGAS(payload, document.getElementById('btnSuspend'));
+      closeModal();
+    }
+
+    function saveChecklist() {
+      const payload = {
+        action: 'updateChecklist',
+        rowIndex: parseInt(document.getElementById('currentRowIndex').value),
+        finger: document.getElementById('checkFinger').checked,
+        wifi: document.getElementById('checkWifi').checked,
+        notes: document.getElementById('inputNotes').value
+      };
+      postToGAS(payload, document.getElementById('btnSaveChecklist'));
+      closeModal();
+    }
+
+    window.onload = loadData;
+  </script>
+</body>
+</html>
