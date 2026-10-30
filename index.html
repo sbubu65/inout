@@ -36,8 +36,8 @@
       <table class="min-w-full text-left border-collapse">
         <thead class="bg-gray-100 border-b">
           <tr>
-            <th class="p-4 font-semibold text-gray-600">Nama / Divisi</th>
-            <th class="p-4 font-semibold text-gray-600">Email Workspace</th>
+            <th class="p-4 font-semibold text-gray-600">ID & Nama</th>
+            <th class="p-4 font-semibold text-gray-600">Posisi / Akun</th>
             <th class="p-4 font-semibold text-gray-600 text-center">Status Workspace</th>
             <th class="p-4 font-semibold text-gray-600 text-center">Progress Offboarding</th>
             <th class="p-4 font-semibold text-gray-600 text-center">Aksi</th>
@@ -78,7 +78,7 @@
         </label>
         <label class="flex items-center space-x-3 mb-4 cursor-pointer">
           <input type="checkbox" id="checkWifi" class="form-checkbox h-5 w-5 text-blue-600 rounded">
-          <span class="text-gray-700">Wi-Fi (Winbox) Dihapus</span>
+          <span class="text-gray-700">Wi-Fi (Winbox) Dihapus <br><span class="text-xs text-gray-400" id="modalWifiUser"></span></span>
         </label>
         <label class="block text-sm text-gray-600 mb-1">Catatan IT:</label>
         <input type="text" id="inputNotes" class="w-full border p-2 rounded text-sm focus:ring focus:ring-blue-200">
@@ -94,20 +94,42 @@
 
   <!-- Modal Onboarding -->
   <div id="modalOnboarding" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center backdrop-blur-sm">
-    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
       <h3 class="text-xl font-bold mb-4 text-gray-800">Form Onboarding Karyawan</h3>
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
-        <input type="text" id="newNama" class="w-full border border-gray-300 p-2 rounded focus:ring focus:ring-blue-200" placeholder="Budi Santoso">
+      
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">ID Karyawan / NIK</label>
+          <input type="text" id="newId" class="w-full border border-gray-300 p-2 rounded focus:ring focus:ring-blue-200" placeholder="Karyawan-001">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
+          <input type="text" id="newNama" class="w-full border border-gray-300 p-2 rounded focus:ring focus:ring-blue-200" placeholder="Budi Santoso">
+        </div>
       </div>
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Divisi / Jabatan</label>
-        <input type="text" id="newDivisi" class="w-full border border-gray-300 p-2 rounded focus:ring focus:ring-blue-200" placeholder="IT Support">
+
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Divisi</label>
+          <input type="text" id="newDivisi" class="w-full border border-gray-300 p-2 rounded focus:ring focus:ring-blue-200" placeholder="IT">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Departemen</label>
+          <input type="text" id="newDept" class="w-full border border-gray-300 p-2 rounded focus:ring focus:ring-blue-200" placeholder="Support">
+        </div>
       </div>
-      <div class="mb-6">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Email Workspace</label>
-        <input type="email" id="newEmail" class="w-full border border-gray-300 p-2 rounded focus:ring focus:ring-blue-200" placeholder="contoh@domain.com">
+
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email Workspace</label>
+          <input type="email" id="newEmail" class="w-full border border-gray-300 p-2 rounded focus:ring focus:ring-blue-200" placeholder="contoh@domain.com">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">User Wi-Fi (Winbox)</label>
+          <input type="text" id="newWifiUser" class="w-full border border-gray-300 p-2 rounded focus:ring focus:ring-blue-200" placeholder="budi.s">
+        </div>
       </div>
+
       <div class="flex justify-end gap-2">
         <button onclick="closeOnboardingModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Batal</button>
         <button onclick="submitOnboarding()" id="btnSubmitOnboarding" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Simpan ke Database</button>
@@ -117,7 +139,7 @@
 
   <script>
     // MASUKKAN URL WEB APP ANDA DI SINI
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzrfhVjBkiIQFPijpHk4WzQh0QP6hKdgTFOl-UcU-YMSpv0FMn4i_DBA_O0T93QItvf/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxsG2q1NyHy_IcNYHFPLVaycC3yP--y8xB-WN6m_CtKToKLp67z3MFijhiIlyCnohIs/exec";
     let currentData = [];
 
     function getProgressBar(percent) {
@@ -153,8 +175,15 @@
 
           tbody.innerHTML += `
             <tr class="hover:bg-gray-50 border-b">
-              <td class="p-4"><p class="font-bold text-gray-800">${row.Nama_Lengkap}</p><p class="text-xs text-gray-500">${row.Divisi}</p></td>
-              <td class="p-4 text-sm">${row.Email_Workspace}</td>
+              <td class="p-4">
+                <p class="font-bold text-gray-800">${row.Nama_Lengkap}</p>
+                <p class="text-xs text-gray-500">ID: ${row.ID_Karyawan}</p>
+              </td>
+              <td class="p-4">
+                <p class="text-sm font-semibold">${row.Divisi} - ${row.Departemen}</p>
+                <p class="text-xs text-gray-500">📧 ${row.Email_Workspace}</p>
+                <p class="text-xs text-gray-500">📶 ${row.User_Wifi}</p>
+              </td>
               <td class="p-4 text-center">${workspaceBadge}</td>
               <td class="p-4 text-center w-48">${getProgressBar(row.Progress_Percent)}</td>
               <td class="p-4 text-center">
@@ -195,9 +224,12 @@
 
     // ONBOARDING
     function openOnboardingModal() {
+      document.getElementById('newId').value = '';
       document.getElementById('newNama').value = '';
       document.getElementById('newDivisi').value = '';
+      document.getElementById('newDept').value = '';
       document.getElementById('newEmail').value = '';
+      document.getElementById('newWifiUser').value = '';
       document.getElementById('modalOnboarding').classList.remove('hidden');
     }
 
@@ -206,11 +238,14 @@
     function submitOnboarding() {
       const payload = {
         action: 'addOnboarding',
+        idKaryawan: document.getElementById('newId').value,
         nama: document.getElementById('newNama').value,
         divisi: document.getElementById('newDivisi').value,
-        email: document.getElementById('newEmail').value
+        departemen: document.getElementById('newDept').value,
+        email: document.getElementById('newEmail').value,
+        userWifi: document.getElementById('newWifiUser').value
       };
-      if(!payload.nama || !payload.email) return alert("Nama dan Email wajib diisi!");
+      if(!payload.idKaryawan || !payload.nama || !payload.email) return alert("ID Karyawan, Nama, dan Email wajib diisi!");
       postToGAS(payload, document.getElementById('btnSubmitOnboarding'));
       closeOnboardingModal();
     }
@@ -222,6 +257,7 @@
       document.getElementById('currentRowIndex').value = row.rowIndex;
       document.getElementById('modalName').innerText = row.Nama_Lengkap;
       document.getElementById('modalEmail').innerText = row.Email_Workspace;
+      document.getElementById('modalWifiUser').innerText = "User Wi-Fi: " + row.User_Wifi;
       document.getElementById('checkFinger').checked = row.Status_Finger === true;
       document.getElementById('checkWifi').checked = row.Status_Wifi === true;
       document.getElementById('inputNotes').value = row.Notes || '';
