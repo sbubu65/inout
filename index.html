@@ -180,14 +180,14 @@
       document.getElementById('wrapTglOut').style.display = isEdit ? "block" : "none";
       document.getElementById('formRowIndex').value = rowIndex || '';
       
-      if(isEdit) {
+    if(isEdit) {
         const row = currentData.find(r => r.rowIndex === rowIndex);
-        document.getElementById('inpId').value = row.ID_Karyawan;
-        document.getElementById('inpNama').value = row.Nama_Lengkap;
-        document.getElementById('inpDiv').value = row.Divisi;
-        document.getElementById('inpDept').value = row.Departemen;
-        document.getElementById('inpEmail').value = row.Email_Workspace;
-        document.getElementById('inpWifi').value = row.User_Wifi;
+        document.getElementById('inpId').value = row.ID_Karyawan || '';
+        document.getElementById('inpNama').value = row.Nama_Lengkap || '';
+        document.getElementById('inpDiv').value = row.Divisi || '';
+        document.getElementById('inpDept').value = row.Departemen || '';
+        document.getElementById('inpEmail').value = row.Email_Workspace || '';
+        document.getElementById('inpWifi').value = row.User_Wifi || '';
         document.getElementById('inpTglIn').value = row.Tgl_Onboarding ? row.Tgl_Onboarding.split('T')[0] : '';
         document.getElementById('inpTglOut').value = row.Tgl_Offboarding ? row.Tgl_Offboarding.split('T')[0] : '';
       } else {
