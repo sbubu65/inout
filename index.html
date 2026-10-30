@@ -9,7 +9,6 @@
     .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     .active-dept { background-color: #eff6ff; border-left: 4px solid #2563eb; }
-    /* Efek hover pada header tabel yang bisa diklik */
     th.sortable { cursor: pointer; transition: background-color 0.2s; }
     th.sortable:hover { background-color: #e5e7eb; }
   </style>
@@ -24,13 +23,22 @@
   </nav>
 
   <div class="container mx-auto p-4 md:p-6">
-    <!-- Responsive Header & Buttons -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-      <h2 class="text-2xl font-bold text-gray-700">Daftar Karyawan</h2>
-      <div class="flex flex-wrap gap-2 w-full md:w-auto">
-        <button onclick="openMasterModal()" class="flex-1 md:flex-none bg-gray-200 border border-gray-300 text-gray-700 px-3 py-2 rounded shadow hover:bg-gray-300 flex justify-center items-center gap-2 text-sm font-semibold"><span>⚙️ Kelola Dropdown</span></button>
-        <button onclick="loadData()" class="flex-1 md:flex-none bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded shadow hover:bg-gray-100 flex justify-center items-center gap-2 text-sm font-semibold"><span>🔄 Refresh</span></button>
-        <button onclick="openFormModal()" class="w-full md:w-auto bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 flex justify-center items-center gap-2 text-sm font-bold"><span>+ Karyawan Baru</span></button>
+    <!-- Responsive Header, Search & Buttons -->
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
+      <h2 class="text-2xl font-bold text-gray-700 whitespace-nowrap">Daftar Karyawan</h2>
+      
+      <div class="flex flex-col md:flex-row gap-3 w-full lg:w-auto lg:justify-end flex-1">
+        <!-- Kolom Search -->
+        <div class="relative w-full md:w-72 shrink-0">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">🔍</span>
+          <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Cari Karyawan, ID, atau Divisi..." class="w-full border border-gray-300 pl-9 pr-3 py-2 rounded shadow-sm focus:ring-blue-400 focus:outline-none text-sm">
+        </div>
+
+        <div class="flex flex-wrap gap-2 w-full md:w-auto">
+          <button onclick="openMasterModal()" class="flex-1 md:flex-none bg-gray-200 border border-gray-300 text-gray-700 px-3 py-2 rounded shadow hover:bg-gray-300 flex justify-center items-center gap-2 text-sm font-semibold transition"><span>⚙️ Kelola Dropdown</span></button>
+          <button onclick="loadData()" class="flex-1 md:flex-none bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded shadow hover:bg-gray-100 flex justify-center items-center gap-2 text-sm font-semibold transition"><span>🔄 Refresh</span></button>
+          <button onclick="openFormModal()" class="w-full md:w-auto bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 flex justify-center items-center gap-2 text-sm font-bold transition"><span>+ Karyawan Baru</span></button>
+        </div>
       </div>
     </div>
 
@@ -64,7 +72,6 @@
       <p class="text-xs text-gray-500 mb-4 shrink-0">Pilih Departemen di sebelah kiri untuk mengelola Divisi di dalamnya.</p>
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 min-h-0">
-        <!-- Area Departemen (Parent) -->
         <div class="border rounded p-3 bg-gray-50 flex flex-col h-full min-h-0">
           <h4 class="font-bold text-gray-700 mb-2 border-b pb-2">🏢 1. Departemen</h4>
           <div class="flex gap-2 mb-2 shrink-0">
@@ -73,7 +80,6 @@
           </div>
           <ul id="listDept" class="space-y-1 overflow-y-auto text-sm flex-1 pr-1 cursor-pointer"></ul>
         </div>
-        <!-- Area Divisi (Child) -->
         <div class="border rounded p-3 bg-gray-50 flex flex-col h-full min-h-0 mt-4 md:mt-0">
           <h4 class="font-bold text-gray-700 mb-2 border-b pb-2 flex justify-between items-center"><span class="truncate">👥 2. Divisi</span> <span id="lblActiveDept" class="text-[10px] font-normal text-blue-600 bg-blue-100 px-2 py-0.5 rounded whitespace-nowrap ml-2">Pilih Dept Dulu</span></h4>
           <div class="flex gap-2 mb-2 shrink-0">
@@ -184,8 +190,9 @@
     let currentMaster = { departments: [], mapping: {} };
     let activeMasterDept = null;
     
-    // VARIABEL SORTING (Pengurutan)
-    let sortColumn = 'Nama_Lengkap'; // Default sort
+    // VARIABEL SEARCH & SORTING
+    let searchQuery = "";
+    let sortColumn = 'Nama_Lengkap'; 
     let sortAscending = true;
 
     function getProgressBar(percent) {
@@ -202,7 +209,6 @@
         currentEmployees = data.employees || [];
         currentMaster = data.master || { departments: [], mapping: {} };
         
-        // Panggil fungsi render tabel dengan fitur sorting
         renderTableData();
 
         populateSelect('selDept', currentMaster.departments);
@@ -210,13 +216,19 @@
       } catch (err) { tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Error memuat data: Periksa koneksi atau URL GAS.</td></tr>`; }
     }
 
-    // --- FITUR SORTING (PENGURUTAN KLIK HEADER) ---
+    // --- FITUR SEARCHING ---
+    function handleSearch() {
+      searchQuery = document.getElementById('searchInput').value.toLowerCase();
+      renderTableData();
+    }
+
+    // --- FITUR SORTING ---
     function handleSort(colName) {
       if (sortColumn === colName) {
-        sortAscending = !sortAscending; // Balik arah jika kolom sama diklik lagi
+        sortAscending = !sortAscending;
       } else {
         sortColumn = colName;
-        sortAscending = true; // Default A-Z jika kolom baru
+        sortAscending = true; 
       }
       renderTableData();
     }
@@ -224,42 +236,45 @@
     function renderTableData() {
       const tbody = document.getElementById('tableBody');
       
-      // Update Icon Sort di Header
+      // Update Icon Sort
       const headers = ['Nama_Lengkap', 'Tgl_Onboarding', 'Departemen', 'Status_Workspace', 'Progress_Percent'];
       headers.forEach(h => {
         const icon = document.getElementById(`sort-${h}`);
         if(icon) icon.innerText = (h === sortColumn) ? (sortAscending ? '⬆️' : '⬇️') : '↕️';
       });
 
-      // Lakukan Sorting Data Array
-      let sortedData = [...currentEmployees].filter(row => row.Nama_Lengkap); // Filter data kosong
-      
-      sortedData.sort((a, b) => {
-        let valA = a[sortColumn];
-        let valB = b[sortColumn];
-
-        // Konversi null/undefined menjadi string kosong
-        if(valA == null) valA = '';
-        if(valB == null) valB = '';
-
-        // Deteksi jika isinya angka (untuk Progress)
-        if(typeof valA === 'number' && typeof valB === 'number') {
-          return sortAscending ? valA - valB : valB - valA;
+      // 1. Lakukan Filtering (Search)
+      let filteredData = [...currentEmployees].filter(row => {
+        if (!row.Nama_Lengkap) return false;
+        
+        if (searchQuery) {
+          const searchString = `
+            ${row.Nama_Lengkap || ''} 
+            ${row.ID_Karyawan || ''} 
+            ${row.Departemen || ''} 
+            ${row.Divisi || ''} 
+            ${row.Email_Workspace || ''}
+          `.toLowerCase();
+          return searchString.includes(searchQuery);
         }
-
-        // Default: Sort secara teks (string)
-        valA = valA.toString().toLowerCase();
-        valB = valB.toString().toLowerCase();
-
+        return true;
+      });
+      
+      // 2. Lakukan Sorting
+      filteredData.sort((a, b) => {
+        let valA = a[sortColumn]; let valB = b[sortColumn];
+        if(valA == null) valA = ''; if(valB == null) valB = '';
+        if(typeof valA === 'number' && typeof valB === 'number') { return sortAscending ? valA - valB : valB - valA; }
+        valA = valA.toString().toLowerCase(); valB = valB.toString().toLowerCase();
         if (valA < valB) return sortAscending ? -1 : 1;
         if (valA > valB) return sortAscending ? 1 : -1;
         return 0;
       });
 
-      // Render Baris HTML
-      tbody.innerHTML = sortedData.length ? '' : `<tr><td colspan="6" class="text-center p-4">Belum ada data.</td></tr>`;
+      // 3. Render ke Tabel
+      tbody.innerHTML = filteredData.length ? '' : `<tr><td colspan="6" class="text-center p-8 text-gray-500 font-semibold">Tidak ada data ditemukan.</td></tr>`;
       
-      sortedData.forEach(row => {
+      filteredData.forEach(row => {
         let wBadge = row.Status_Workspace === 'Suspended' ? `<span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-[10px] sm:text-xs rounded-full font-bold">Suspended</span>` : `<span class="px-2 py-1 bg-green-100 text-green-800 text-[10px] sm:text-xs rounded-full font-bold">Active</span>`;
         let tglIn = row.Tgl_Onboarding ? new Date(row.Tgl_Onboarding).toLocaleDateString('id-ID') : '-';
         let tglOut = row.Tgl_Offboarding ? new Date(row.Tgl_Offboarding).toLocaleDateString('id-ID') : '-';
@@ -293,7 +308,7 @@
       });
     }
 
-    // --- MANAJEMEN MASTER DATA (MODAL KELOLA) ---
+    // --- SISA SCRIPT MASTER DATA & KARYAWAN SAMA PERSIS SEPERTI SEBELUMNYA ---
     async function actMasterData(payload) {
       try {
         const res = await fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
@@ -404,7 +419,6 @@
       }
     }
 
-    // --- FORM CASCADING DROPDOWN LOGIC ---
     function populateDropdown(selId, arrayOptions) {
       const sel = document.getElementById(selId);
       sel.innerHTML = `<option value="">-- Pilih --</option>`;
