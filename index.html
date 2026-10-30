@@ -55,18 +55,25 @@
         <h3 class="text-xl font-bold text-gray-800">⚙️ Kelola Divisi & Departemen</h3>
         <button onclick="closeMasterModal()" class="text-gray-500 hover:text-red-500 font-bold text-xl">&times;</button>
       </div>
-      <p class="text-xs text-gray-500 mb-4">Daftar ini digunakan untuk opsi dropdown Form Karyawan. Tambah item baru langsung dari form "Karyawan Baru".</p>
       
       <div class="grid grid-cols-2 gap-6">
-        <!-- List Departemen -->
-        <div class="border rounded p-3 bg-gray-50">
-          <h4 class="font-bold text-gray-700 mb-2 border-b pb-2">🏢 Departemen</h4>
-          <ul id="listDept" class="space-y-2 h-64 overflow-y-auto text-sm"></ul>
+        <!-- Area Departemen -->
+        <div class="border rounded p-3 bg-gray-50 flex flex-col h-[400px]">
+          <h4 class="font-bold text-gray-700 mb-3 border-b pb-2">🏢 Departemen</h4>
+          <div class="flex gap-2 mb-3">
+            <input type="text" id="inpNewDept" class="w-full border p-1.5 rounded text-sm focus:ring-blue-200" placeholder="Ketik Dept Baru...">
+            <button onclick="addMasterData('dept')" class="bg-blue-600 text-white px-3 py-1.5 rounded font-bold hover:bg-blue-700">+</button>
+          </div>
+          <ul id="listDept" class="space-y-2 overflow-y-auto text-sm flex-1 pr-1"></ul>
         </div>
-        <!-- List Divisi -->
-        <div class="border rounded p-3 bg-gray-50">
-          <h4 class="font-bold text-gray-700 mb-2 border-b pb-2">👥 Divisi</h4>
-          <ul id="listDiv" class="space-y-2 h-64 overflow-y-auto text-sm"></ul>
+        <!-- Area Divisi -->
+        <div class="border rounded p-3 bg-gray-50 flex flex-col h-[400px]">
+          <h4 class="font-bold text-gray-700 mb-3 border-b pb-2">👥 Divisi</h4>
+          <div class="flex gap-2 mb-3">
+            <input type="text" id="inpNewDiv" class="w-full border p-1.5 rounded text-sm focus:ring-blue-200" placeholder="Ketik Divisi Baru...">
+            <button onclick="addMasterData('divisi')" class="bg-blue-600 text-white px-3 py-1.5 rounded font-bold hover:bg-blue-700">+</button>
+          </div>
+          <ul id="listDiv" class="space-y-2 overflow-y-auto text-sm flex-1 pr-1"></ul>
         </div>
       </div>
     </div>
@@ -157,7 +164,7 @@
 
   <script>
     // MASUKKAN URL WEB APP GAS ANDA DISINI
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwI4k5OB_oOmOg3G29oonfyoRwL3wkWHk7kmYHJ9lojDOCyJChSsTrvosvx1XlGX91b/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzY8luQwi5ES28_O9OP2YAgxMgxo7dbUbI57QzYRIEhNkWG9PchZ6w8uu2yY5hSxc2z/exec";
     let currentEmployees = [];
     let currentMaster = { dept: [], div: [] };
 
@@ -175,7 +182,6 @@
         currentEmployees = data.employees || [];
         currentMaster = data.master || { dept: [], div: [] };
         
-        // Render Tabel Karyawan
         tbody.innerHTML = currentEmployees.length ? '' : `<tr><td colspan="6" class="text-center p-4">Belum ada data.</td></tr>`;
         currentEmployees.forEach(row => {
           if(!row.Nama_Lengkap) return;
@@ -200,22 +206,9 @@
             </tr>`;
         });
         
-        // Populate Master Data Select Options
         populateSelect('selDept', currentMaster.dept);
         populateSelect('selDiv', currentMaster.div);
-        
       } catch (err) { tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Error memuat data</td></tr>`; }
-    }
-
-    async function postData(payload, btn = null) {
-      let txt = ""; 
-      if(btn) { txt = btn.innerText; btn.innerText = "..."; btn.disabled = true; }
-      try {
-        const res = await fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-        const result = await res.json();
-        if(result.success) loadData(); else alert("Error: " + result.error);
-      } catch (err) { alert("Gagal koneksi server"); }
-      finally { if(btn) { btn.innerText = txt; btn.disabled = false; } }
     }
 
     // --- MANAJEMEN MASTER DATA (DROPDOWN) ---
@@ -226,27 +219,69 @@
       sel.innerHTML += `<option value="custom" class="font-bold text-blue-600">+ Tambah Baru...</option>`;
     }
 
-    function openMasterModal() {
+    function renderMasterList() {
       const lDept = document.getElementById('listDept');
       const lDiv = document.getElementById('listDiv');
       lDept.innerHTML = ''; lDiv.innerHTML = '';
       
       currentMaster.dept.forEach(val => {
-        lDept.innerHTML += `<li class="flex justify-between items-center bg-white p-2 rounded shadow-sm border"><span>${val}</span> <button onclick="deleteMasterData('dept', '${val}')" class="text-red-500 hover:bg-red-100 px-2 rounded">❌</button></li>`;
+        lDept.innerHTML += `
+          <li class="flex justify-between items-center bg-white p-2 rounded shadow-sm border">
+            <span class="truncate pr-2">${val}</span> 
+            <div class="flex gap-1 shrink-0">
+              <button onclick="editMasterData('dept', '${val}')" class="text-yellow-600 hover:bg-yellow-100 px-1.5 rounded">✏️</button>
+              <button onclick="deleteMasterData('dept', '${val}')" class="text-red-500 hover:bg-red-100 px-1.5 rounded">❌</button>
+            </div>
+          </li>`;
       });
       currentMaster.div.forEach(val => {
-        lDiv.innerHTML += `<li class="flex justify-between items-center bg-white p-2 rounded shadow-sm border"><span>${val}</span> <button onclick="deleteMasterData('divisi', '${val}')" class="text-red-500 hover:bg-red-100 px-2 rounded">❌</button></li>`;
+        lDiv.innerHTML += `
+          <li class="flex justify-between items-center bg-white p-2 rounded shadow-sm border">
+            <span class="truncate pr-2">${val}</span> 
+            <div class="flex gap-1 shrink-0">
+              <button onclick="editMasterData('divisi', '${val}')" class="text-yellow-600 hover:bg-yellow-100 px-1.5 rounded">✏️</button>
+              <button onclick="deleteMasterData('divisi', '${val}')" class="text-red-500 hover:bg-red-100 px-1.5 rounded">❌</button>
+            </div>
+          </li>`;
       });
-      
+    }
+
+    function openMasterModal() {
+      renderMasterList();
       document.getElementById('modalMaster').classList.remove('hidden');
     }
     
     function closeMasterModal() { document.getElementById('modalMaster').classList.add('hidden'); }
     
+    async function actMasterData(payload) {
+      try {
+        const res = await fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+        const result = await res.json();
+        if(result.success) {
+          await loadData();
+          renderMasterList();
+        } else alert("Error: " + result.error);
+      } catch (err) { alert("Gagal koneksi server"); }
+    }
+
+    function addMasterData(type) {
+      const inp = document.getElementById(type === 'dept' ? 'inpNewDept' : 'inpNewDiv');
+      const val = inp.value.trim().toUpperCase();
+      if(!val) return;
+      inp.value = ''; // Kosongkan input setelah enter/klik
+      actMasterData({ action: 'addMaster', type: type, value: val });
+    }
+
+    function editMasterData(type, oldVal) {
+      const newVal = prompt(`Edit nama ${type === 'dept' ? 'Departemen' : 'Divisi'} "${oldVal}":`, oldVal);
+      if(newVal && newVal.trim().toUpperCase() !== oldVal) {
+         actMasterData({ action: 'editMaster', type: type, oldValue: oldVal, newValue: newVal.trim().toUpperCase() });
+      }
+    }
+
     function deleteMasterData(type, value) {
-      if(confirm(`Hapus opsi "${value}" dari daftar?`)) {
-        postData({ action: 'deleteMaster', type: type, value: value });
-        closeMasterModal();
+      if(confirm(`Hapus opsi "${value}" dari daftar dropdown?`)) {
+         actMasterData({ action: 'deleteMaster', type: type, value: value });
       }
     }
 
@@ -268,6 +303,16 @@
     }
 
     // --- MANAJEMEN KARYAWAN ---
+    async function postData(payload, btn) {
+      let txt = btn.innerText; btn.innerText = "..."; btn.disabled = true;
+      try {
+        const res = await fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+        const result = await res.json();
+        if(result.success) loadData(); else alert("Error: " + result.error);
+      } catch (err) { alert("Gagal koneksi"); }
+      finally { btn.innerText = txt; btn.disabled = false; }
+    }
+
     function openFormModal(rowIndex = null) {
       const isEdit = rowIndex !== null;
       document.getElementById('formTitle').innerText = isEdit ? "Edit Data Karyawan" : "Onboarding Baru";
@@ -303,7 +348,7 @@
         rowIndex: rowIndex ? parseInt(rowIndex) : null,
         idKaryawan: document.getElementById('inpId').value, 
         nama: document.getElementById('inpNama').value,
-        departemen: document.getElementById('inpDept').value.toUpperCase(), // Paksa jadi huruf besar
+        departemen: document.getElementById('inpDept').value.toUpperCase(),
         divisi: document.getElementById('inpDiv').value.toUpperCase(),
         email: document.getElementById('inpEmail').value, 
         userWifi: document.getElementById('inpWifi').value,
@@ -318,7 +363,9 @@
     }
 
     function deleteRow(rowIndex) {
-      if(confirm("Hapus karyawan permanen?")) postData({ action: 'deleteKaryawan', rowIndex: parseInt(rowIndex) });
+      if(confirm("Hapus karyawan permanen?")) {
+        postData({ action: 'deleteKaryawan', rowIndex: parseInt(rowIndex) }, document.createElement('button'));
+      }
     }
 
     function openClearanceModal(rowIndex) {
