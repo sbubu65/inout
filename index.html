@@ -47,7 +47,7 @@
     </div>
   </div>
 
-  <!-- Modal Form (Bisa untuk Onboarding & Edit) -->
+  <!-- Modal Form (Onboarding & Edit) -->
   <div id="modalForm" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center backdrop-blur-sm z-50">
     <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
       <h3 class="text-xl font-bold mb-4 text-gray-800" id="formTitle">Form Karyawan</h3>
@@ -55,16 +55,45 @@
       
       <div class="grid grid-cols-2 gap-4 mb-4">
         <div><label class="block text-xs font-medium text-gray-700 mb-1">ID Karyawan</label><input type="text" id="inpId" class="w-full border p-2 rounded text-sm"></div>
-        <div><label class="block text-xs font-medium text-gray-700 mb-1">Nama Lengkap</label><input type="text" id="inpNama" class="w-full border p-2 rounded text-sm"></div>
+        <div><label class="block text-xs font-medium text-gray-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label><input type="text" id="inpNama" class="w-full border p-2 rounded text-sm focus:ring-blue-200"></div>
       </div>
+      
       <div class="grid grid-cols-2 gap-4 mb-4">
-        <div><label class="block text-xs font-medium text-gray-700 mb-1">Divisi</label><input type="text" id="inpDiv" class="w-full border p-2 rounded text-sm"></div>
-        <div><label class="block text-xs font-medium text-gray-700 mb-1">Departemen</label><input type="text" id="inpDept" class="w-full border p-2 rounded text-sm"></div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Departemen</label>
+          <select id="selDept" onchange="checkCustomOption('selDept', 'inpDept')" class="w-full border p-2 rounded text-sm bg-white cursor-pointer">
+            <option value="">-- Pilih --</option>
+            <option value="HOLDING">HOLDING</option>
+            <option value="PTC">PTC</option>
+            <option value="ACADEMY">ACADEMY</option>
+            <option value="custom" class="font-bold text-blue-600">+ Tambah Baru...</option>
+          </select>
+          <input type="text" id="inpDept" class="w-full border p-2 rounded text-sm mt-2 hidden" placeholder="Ketik Departemen Baru...">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">Divisi</label>
+          <select id="selDiv" onchange="checkCustomOption('selDiv', 'inpDiv')" class="w-full border p-2 rounded text-sm bg-white cursor-pointer">
+            <option value="">-- Pilih --</option>
+            <option value="HRD">HRD</option>
+            <option value="IT">IT</option>
+            <option value="FINANCE">FINANCE</option>
+            <option value="MARKETING">MARKETING</option>
+            <option value="custom" class="font-bold text-blue-600">+ Tambah Baru...</option>
+          </select>
+          <input type="text" id="inpDiv" class="w-full border p-2 rounded text-sm mt-2 hidden" placeholder="Ketik Divisi Baru...">
+        </div>
       </div>
+
+      <div class="mb-4">
+        <label class="block text-xs font-medium text-gray-700 mb-1">Email Workspace</label>
+        <input type="email" id="inpEmail" class="w-full border p-2 rounded text-sm">
+      </div>
+
       <div class="grid grid-cols-2 gap-4 mb-4">
-        <div><label class="block text-xs font-medium text-gray-700 mb-1">Email Workspace</label><input type="email" id="inpEmail" class="w-full border p-2 rounded text-sm"></div>
         <div><label class="block text-xs font-medium text-gray-700 mb-1">User Wi-Fi</label><input type="text" id="inpWifi" class="w-full border p-2 rounded text-sm"></div>
+        <div><label class="block text-xs font-medium text-gray-700 mb-1">ID Fingerprint</label><input type="text" id="inpFinger" class="w-full border p-2 rounded text-sm"></div>
       </div>
+      
       <div class="grid grid-cols-2 gap-4 mb-6">
         <div><label class="block text-xs font-medium text-gray-700 mb-1">Tgl Onboarding</label><input type="date" id="inpTglIn" class="w-full border p-2 rounded text-sm"></div>
         <div id="wrapTglOut" class="hidden"><label class="block text-xs font-medium text-gray-700 mb-1">Tgl Offboarding</label><input type="date" id="inpTglOut" class="w-full border p-2 rounded text-sm"></div>
@@ -79,7 +108,6 @@
   <!-- Modal Kelola Offboarding & History -->
   <div id="modalClearance" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center backdrop-blur-sm z-50">
     <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl flex gap-6">
-      
       <!-- Kiri: Action Area -->
       <div class="flex-1">
         <h3 class="text-xl font-bold mb-1" id="modalName">Nama</h3>
@@ -96,8 +124,8 @@
 
         <div class="p-3 border rounded-md bg-gray-50 mb-3">
           <span class="font-semibold text-gray-700 text-sm block mb-2">2. Checklist Lokal</span>
-          <label class="flex items-center space-x-2 mb-2 text-sm"><input type="checkbox" id="checkFinger" class="rounded"><span>Fingerprint (ATT) Dihapus</span></label>
-          <label class="flex items-center space-x-2 mb-3 text-sm"><input type="checkbox" id="checkWifi" class="rounded"><span>Wi-Fi (Winbox) Dihapus</span></label>
+          <label class="flex items-center space-x-2 mb-2 text-sm"><input type="checkbox" id="checkFinger" class="rounded"><span id="lblFinger">Fingerprint Dihapus</span></label>
+          <label class="flex items-center space-x-2 mb-3 text-sm"><input type="checkbox" id="checkWifi" class="rounded"><span id="lblWifi">Wi-Fi (Winbox) Dihapus</span></label>
           
           <div class="grid grid-cols-2 gap-2 mb-2">
             <div><label class="block text-xs text-gray-600">Set Tgl Offboarding</label><input type="date" id="offboardDate" class="w-full border p-1 rounded text-xs"></div>
@@ -109,24 +137,45 @@
           <button onclick="saveChecklist()" id="btnSaveChecklist" class="px-3 py-2 bg-blue-600 text-white rounded text-sm">Simpan</button>
         </div>
       </div>
-
       <!-- Kanan: History Log -->
       <div class="w-1/3 border-l pl-4">
         <h4 class="font-bold text-gray-700 mb-2 text-sm">📜 History Log</h4>
         <div id="historyLog" class="bg-gray-800 text-green-400 text-xs p-3 rounded h-80 overflow-y-auto whitespace-pre-wrap font-mono"></div>
       </div>
-
     </div>
   </div>
 
   <script>
     // MASUKKAN URL WEB APP GAS ANDA DISINI
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzqKfazvQ6mw1tXliTuyzWe3lfqFMlXqL4Kmh9HilU3EMfPudA7KcksLQbEZqREjh8e/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxDEbJ8XeTg0Ru7bXEMbwiJqOIoErxVFX1Ktx09ugXaeXBgk3lYn12il1GBzW9gesKM/exec";
     let currentData = [];
 
     function getProgressBar(percent) {
       let color = percent == 100 ? 'bg-green-500' : (percent > 0 ? 'bg-yellow-400' : 'bg-gray-200');
       return `<div class="w-full bg-gray-200 rounded-full h-2 mt-1"><div class="${color} h-2 rounded-full" style="width: ${percent || 0}%"></div></div><span class="text-[10px] text-gray-500 block text-center">${percent || 0}% Cleared</span>`;
+    }
+
+    function checkCustomOption(selId, inpId) {
+      const sel = document.getElementById(selId);
+      const inp = document.getElementById(inpId);
+      if(sel.value === "custom") {
+        inp.classList.remove("hidden"); inp.value = ""; inp.focus();
+      } else {
+        inp.classList.add("hidden"); inp.value = sel.value;
+      }
+    }
+
+    function setDropdownValue(selId, inpId, val) {
+      const sel = document.getElementById(selId);
+      const inp = document.getElementById(inpId);
+      inp.value = val || "";
+      if(!val) { sel.value = ""; inp.classList.add("hidden"); return; }
+      let found = Array.from(sel.options).some(opt => opt.value === val);
+      if(found) {
+        sel.value = val; inp.classList.add("hidden");
+      } else {
+        sel.value = "custom"; inp.classList.remove("hidden");
+      }
     }
 
     async function loadData() {
@@ -139,23 +188,28 @@
         tbody.innerHTML = data.length ? '' : `<tr><td colspan="6" class="text-center p-4">Belum ada data.</td></tr>`;
         
         data.forEach(row => {
-          if(!row.ID_Karyawan) return;
+          if(!row.Nama_Lengkap) return; // Validasi berdasarkan Nama
           let wBadge = row.Status_Workspace === 'Suspended' ? `<span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full font-bold">Suspended</span>` : `<span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-bold">Active</span>`;
           let tglIn = row.Tgl_Onboarding ? new Date(row.Tgl_Onboarding).toLocaleDateString('id-ID') : '-';
           let tglOut = row.Tgl_Offboarding ? new Date(row.Tgl_Offboarding).toLocaleDateString('id-ID') : '-';
 
           tbody.innerHTML += `
             <tr class="hover:bg-gray-50 border-b">
-              <td class="p-3"><p class="font-bold text-gray-800 text-sm">${row.Nama_Lengkap}</p><p class="text-xs text-gray-500">${row.ID_Karyawan}</p></td>
+              <td class="p-3"><p class="font-bold text-gray-800 text-sm">${row.Nama_Lengkap}</p><p class="text-xs text-gray-500">${row.ID_Karyawan || '-'}</p></td>
               <td class="p-3 text-xs"><p class="text-green-600">IN: ${tglIn}</p><p class="text-red-500">OUT: ${tglOut}</p></td>
-              <td class="p-3 text-xs"><p class="font-semibold">${row.Divisi} - ${row.Departemen}</p><p>📧 ${row.Email_Workspace}</p><p>📶 ${row.User_Wifi}</p></td>
+              <td class="p-3 text-xs">
+                <p class="font-semibold">${row.Departemen || '-'} - ${row.Divisi || '-'}</p>
+                <p>📧 ${row.Email_Workspace || '-'}</p>
+                <p>📶 Wi-Fi: ${row.User_Wifi || '-'}</p>
+                <p>👆 Finger: ${row.ID_Finger || '-'}</p>
+              </td>
               <td class="p-3 text-center">${wBadge}</td>
               <td class="p-3 w-32">${getProgressBar(row.Progress_Percent)}</td>
               <td class="p-3">
                 <div class="flex gap-1 justify-center">
                   <button onclick='openClearanceModal(${row.rowIndex})' class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold hover:bg-blue-600 hover:text-white" title="Kelola Akses">Kelola</button>
-                  <button onclick='openFormModal(${row.rowIndex})' class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold hover:bg-yellow-500 hover:text-white" title="Edit Karyawan">✏️</button>
-                  <button onclick='deleteRow(${row.rowIndex})' class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold hover:bg-red-600 hover:text-white" title="Hapus Permanen">🗑️</button>
+                  <button onclick='openFormModal(${row.rowIndex})' class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold hover:bg-yellow-500 hover:text-white" title="Edit">✏️</button>
+                  <button onclick='deleteRow(${row.rowIndex})' class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold hover:bg-red-600 hover:text-white" title="Hapus">🗑️</button>
                 </div>
               </td>
             </tr>`;
@@ -168,30 +222,33 @@
       try {
         const res = await fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
         const result = await res.json();
-        if(result.success) loadData(); else alert("Error Server");
+        if(result.success) loadData(); else alert("Error: " + result.error);
       } catch (err) { alert("Gagal koneksi"); }
       finally { btn.innerText = txt; btn.disabled = false; }
     }
 
-    // FORM: ONBOARDING / EDIT
     function openFormModal(rowIndex = null) {
       const isEdit = rowIndex !== null;
       document.getElementById('formTitle').innerText = isEdit ? "Edit Data Karyawan" : "Onboarding Baru";
       document.getElementById('wrapTglOut').style.display = isEdit ? "block" : "none";
       document.getElementById('formRowIndex').value = rowIndex || '';
       
-    if(isEdit) {
+      if(isEdit) {
         const row = currentData.find(r => r.rowIndex === rowIndex);
         document.getElementById('inpId').value = row.ID_Karyawan || '';
         document.getElementById('inpNama').value = row.Nama_Lengkap || '';
-        document.getElementById('inpDiv').value = row.Divisi || '';
-        document.getElementById('inpDept').value = row.Departemen || '';
         document.getElementById('inpEmail').value = row.Email_Workspace || '';
         document.getElementById('inpWifi').value = row.User_Wifi || '';
+        document.getElementById('inpFinger').value = row.ID_Finger || '';
         document.getElementById('inpTglIn').value = row.Tgl_Onboarding ? row.Tgl_Onboarding.split('T')[0] : '';
         document.getElementById('inpTglOut').value = row.Tgl_Offboarding ? row.Tgl_Offboarding.split('T')[0] : '';
+        
+        setDropdownValue('selDept', 'inpDept', row.Departemen);
+        setDropdownValue('selDiv', 'inpDiv', row.Divisi);
       } else {
-        ['inpId','inpNama','inpDiv','inpDept','inpEmail','inpWifi','inpTglIn','inpTglOut'].forEach(id => document.getElementById(id).value = '');
+        ['inpId','inpNama','inpEmail','inpWifi','inpFinger','inpTglIn','inpTglOut'].forEach(id => document.getElementById(id).value = '');
+        setDropdownValue('selDept', 'inpDept', '');
+        setDropdownValue('selDiv', 'inpDiv', '');
       }
       document.getElementById('modalForm').classList.remove('hidden');
     }
@@ -203,31 +260,40 @@
       const payload = {
         action: rowIndex ? 'editKaryawan' : 'addOnboarding',
         rowIndex: rowIndex ? parseInt(rowIndex) : null,
-        idKaryawan: document.getElementById('inpId').value, nama: document.getElementById('inpNama').value,
-        divisi: document.getElementById('inpDiv').value, departemen: document.getElementById('inpDept').value,
-        email: document.getElementById('inpEmail').value, userWifi: document.getElementById('inpWifi').value,
-        tglOnboarding: document.getElementById('inpTglIn').value, tglOffboarding: document.getElementById('inpTglOut').value
+        idKaryawan: document.getElementById('inpId').value, 
+        nama: document.getElementById('inpNama').value,
+        departemen: document.getElementById('inpDept').value,
+        divisi: document.getElementById('inpDiv').value,
+        email: document.getElementById('inpEmail').value, 
+        userWifi: document.getElementById('inpWifi').value,
+        idFinger: document.getElementById('inpFinger').value,
+        tglOnboarding: document.getElementById('inpTglIn').value, 
+        tglOffboarding: document.getElementById('inpTglOut').value
       };
-      if(!payload.idKaryawan || !payload.nama) return alert("ID dan Nama wajib diisi!");
+      // VALIDASI: Hanya Nama Lengkap yang wajib diisi
+      if(!payload.nama) return alert("Nama Lengkap wajib diisi!");
+      
       postData(payload, document.getElementById('btnSubmitForm'));
       closeFormModal();
     }
 
-    // HAPUS
     function deleteRow(rowIndex) {
       if(confirm("Hapus data karyawan ini secara permanen dari database?")) {
         postData({ action: 'deleteKaryawan', rowIndex: parseInt(rowIndex) }, document.createElement('button'));
       }
     }
 
-    // KELOLA OFFBOARDING & HISTORY
     function openClearanceModal(rowIndex) {
       const row = currentData.find(r => r.rowIndex === rowIndex);
       document.getElementById('clearanceRowIndex').value = row.rowIndex;
       document.getElementById('modalName').innerText = row.Nama_Lengkap;
-      document.getElementById('modalEmail').innerText = row.Email_Workspace;
+      document.getElementById('modalEmail').innerText = row.Email_Workspace || 'Tidak ada email';
       document.getElementById('historyLog').innerText = row.History_Log || "Belum ada history.";
       
+      // Update label di checklist kelola
+      document.getElementById('lblFinger').innerText = row.ID_Finger ? `Fingerprint [ID: ${row.ID_Finger}] Dihapus` : `Fingerprint Dihapus`;
+      document.getElementById('lblWifi').innerText = row.User_Wifi ? `Wi-Fi [User: ${row.User_Wifi}] Dihapus` : `Wi-Fi (Winbox) Dihapus`;
+
       document.getElementById('checkFinger').checked = row.Status_Finger === true;
       document.getElementById('checkWifi').checked = row.Status_Wifi === true;
       document.getElementById('offboardDate').value = row.Tgl_Offboarding ? row.Tgl_Offboarding.split('T')[0] : '';
