@@ -23,6 +23,7 @@
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-bold text-gray-700">Daftar Karyawan</h2>
       <div class="flex gap-2">
+        <button onclick="openMasterModal()" class="bg-gray-200 border border-gray-300 text-gray-700 px-4 py-2 rounded shadow hover:bg-gray-300 flex items-center gap-2"><span>⚙️ Kelola Dropdown</span></button>
         <button onclick="loadData()" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded shadow hover:bg-gray-100 flex items-center gap-2"><span>🔄 Refresh</span></button>
         <button onclick="openFormModal()" class="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 flex items-center gap-2"><span>+ Karyawan Baru</span></button>
       </div>
@@ -47,7 +48,31 @@
     </div>
   </div>
 
-  <!-- Modal Form (Onboarding & Edit) -->
+  <!-- Modal Kelola Master Data (Divisi & Dept) -->
+  <div id="modalMaster" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center backdrop-blur-sm z-50">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-gray-800">⚙️ Kelola Divisi & Departemen</h3>
+        <button onclick="closeMasterModal()" class="text-gray-500 hover:text-red-500 font-bold text-xl">&times;</button>
+      </div>
+      <p class="text-xs text-gray-500 mb-4">Daftar ini digunakan untuk opsi dropdown Form Karyawan. Tambah item baru langsung dari form "Karyawan Baru".</p>
+      
+      <div class="grid grid-cols-2 gap-6">
+        <!-- List Departemen -->
+        <div class="border rounded p-3 bg-gray-50">
+          <h4 class="font-bold text-gray-700 mb-2 border-b pb-2">🏢 Departemen</h4>
+          <ul id="listDept" class="space-y-2 h-64 overflow-y-auto text-sm"></ul>
+        </div>
+        <!-- List Divisi -->
+        <div class="border rounded p-3 bg-gray-50">
+          <h4 class="font-bold text-gray-700 mb-2 border-b pb-2">👥 Divisi</h4>
+          <ul id="listDiv" class="space-y-2 h-64 overflow-y-auto text-sm"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Form Karyawan -->
   <div id="modalForm" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center backdrop-blur-sm z-50">
     <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
       <h3 class="text-xl font-bold mb-4 text-gray-800" id="formTitle">Form Karyawan</h3>
@@ -61,25 +86,12 @@
       <div class="grid grid-cols-2 gap-4 mb-4">
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">Departemen</label>
-          <select id="selDept" onchange="checkCustomOption('selDept', 'inpDept')" class="w-full border p-2 rounded text-sm bg-white cursor-pointer">
-            <option value="">-- Pilih --</option>
-            <option value="HOLDING">HOLDING</option>
-            <option value="PTC">PTC</option>
-            <option value="ACADEMY">ACADEMY</option>
-            <option value="custom" class="font-bold text-blue-600">+ Tambah Baru...</option>
-          </select>
+          <select id="selDept" onchange="checkCustomOption('selDept', 'inpDept')" class="w-full border p-2 rounded text-sm bg-white cursor-pointer"></select>
           <input type="text" id="inpDept" class="w-full border p-2 rounded text-sm mt-2 hidden" placeholder="Ketik Departemen Baru...">
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">Divisi</label>
-          <select id="selDiv" onchange="checkCustomOption('selDiv', 'inpDiv')" class="w-full border p-2 rounded text-sm bg-white cursor-pointer">
-            <option value="">-- Pilih --</option>
-            <option value="HRD">HRD</option>
-            <option value="IT">IT</option>
-            <option value="FINANCE">FINANCE</option>
-            <option value="MARKETING">MARKETING</option>
-            <option value="custom" class="font-bold text-blue-600">+ Tambah Baru...</option>
-          </select>
+          <select id="selDiv" onchange="checkCustomOption('selDiv', 'inpDiv')" class="w-full border p-2 rounded text-sm bg-white cursor-pointer"></select>
           <input type="text" id="inpDiv" class="w-full border p-2 rounded text-sm mt-2 hidden" placeholder="Ketik Divisi Baru...">
         </div>
       </div>
@@ -108,7 +120,6 @@
   <!-- Modal Kelola Offboarding & History -->
   <div id="modalClearance" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center backdrop-blur-sm z-50">
     <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl flex gap-6">
-      <!-- Kiri: Action Area -->
       <div class="flex-1">
         <h3 class="text-xl font-bold mb-1" id="modalName">Nama</h3>
         <p class="text-sm text-gray-500 mb-4" id="modalEmail">email@domain</p>
@@ -125,7 +136,7 @@
         <div class="p-3 border rounded-md bg-gray-50 mb-3">
           <span class="font-semibold text-gray-700 text-sm block mb-2">2. Checklist Lokal</span>
           <label class="flex items-center space-x-2 mb-2 text-sm"><input type="checkbox" id="checkFinger" class="rounded"><span id="lblFinger">Fingerprint Dihapus</span></label>
-          <label class="flex items-center space-x-2 mb-3 text-sm"><input type="checkbox" id="checkWifi" class="rounded"><span id="lblWifi">Wi-Fi (Winbox) Dihapus</span></label>
+          <label class="flex items-center space-x-2 mb-3 text-sm"><input type="checkbox" id="checkWifi" class="rounded"><span id="lblWifi">Wi-Fi Dihapus</span></label>
           
           <div class="grid grid-cols-2 gap-2 mb-2">
             <div><label class="block text-xs text-gray-600">Set Tgl Offboarding</label><input type="date" id="offboardDate" class="w-full border p-1 rounded text-xs"></div>
@@ -137,7 +148,6 @@
           <button onclick="saveChecklist()" id="btnSaveChecklist" class="px-3 py-2 bg-blue-600 text-white rounded text-sm">Simpan</button>
         </div>
       </div>
-      <!-- Kanan: History Log -->
       <div class="w-1/3 border-l pl-4">
         <h4 class="font-bold text-gray-700 mb-2 text-sm">📜 History Log</h4>
         <div id="historyLog" class="bg-gray-800 text-green-400 text-xs p-3 rounded h-80 overflow-y-auto whitespace-pre-wrap font-mono"></div>
@@ -147,35 +157,13 @@
 
   <script>
     // MASUKKAN URL WEB APP GAS ANDA DISINI
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxDEbJ8XeTg0Ru7bXEMbwiJqOIoErxVFX1Ktx09ugXaeXBgk3lYn12il1GBzW9gesKM/exec";
-    let currentData = [];
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwI4k5OB_oOmOg3G29oonfyoRwL3wkWHk7kmYHJ9lojDOCyJChSsTrvosvx1XlGX91b/exec";
+    let currentEmployees = [];
+    let currentMaster = { dept: [], div: [] };
 
     function getProgressBar(percent) {
       let color = percent == 100 ? 'bg-green-500' : (percent > 0 ? 'bg-yellow-400' : 'bg-gray-200');
       return `<div class="w-full bg-gray-200 rounded-full h-2 mt-1"><div class="${color} h-2 rounded-full" style="width: ${percent || 0}%"></div></div><span class="text-[10px] text-gray-500 block text-center">${percent || 0}% Cleared</span>`;
-    }
-
-    function checkCustomOption(selId, inpId) {
-      const sel = document.getElementById(selId);
-      const inp = document.getElementById(inpId);
-      if(sel.value === "custom") {
-        inp.classList.remove("hidden"); inp.value = ""; inp.focus();
-      } else {
-        inp.classList.add("hidden"); inp.value = sel.value;
-      }
-    }
-
-    function setDropdownValue(selId, inpId, val) {
-      const sel = document.getElementById(selId);
-      const inp = document.getElementById(inpId);
-      inp.value = val || "";
-      if(!val) { sel.value = ""; inp.classList.add("hidden"); return; }
-      let found = Array.from(sel.options).some(opt => opt.value === val);
-      if(found) {
-        sel.value = val; inp.classList.add("hidden");
-      } else {
-        sel.value = "custom"; inp.classList.remove("hidden");
-      }
     }
 
     async function loadData() {
@@ -184,11 +172,13 @@
       try {
         const res = await fetch(GAS_URL, { method: 'GET', redirect: 'follow' });
         const data = await res.json();
-        currentData = data;
-        tbody.innerHTML = data.length ? '' : `<tr><td colspan="6" class="text-center p-4">Belum ada data.</td></tr>`;
+        currentEmployees = data.employees || [];
+        currentMaster = data.master || { dept: [], div: [] };
         
-        data.forEach(row => {
-          if(!row.Nama_Lengkap) return; // Validasi berdasarkan Nama
+        // Render Tabel Karyawan
+        tbody.innerHTML = currentEmployees.length ? '' : `<tr><td colspan="6" class="text-center p-4">Belum ada data.</td></tr>`;
+        currentEmployees.forEach(row => {
+          if(!row.Nama_Lengkap) return;
           let wBadge = row.Status_Workspace === 'Suspended' ? `<span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full font-bold">Suspended</span>` : `<span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-bold">Active</span>`;
           let tglIn = row.Tgl_Onboarding ? new Date(row.Tgl_Onboarding).toLocaleDateString('id-ID') : '-';
           let tglOut = row.Tgl_Offboarding ? new Date(row.Tgl_Offboarding).toLocaleDateString('id-ID') : '-';
@@ -197,12 +187,7 @@
             <tr class="hover:bg-gray-50 border-b">
               <td class="p-3"><p class="font-bold text-gray-800 text-sm">${row.Nama_Lengkap}</p><p class="text-xs text-gray-500">${row.ID_Karyawan || '-'}</p></td>
               <td class="p-3 text-xs"><p class="text-green-600">IN: ${tglIn}</p><p class="text-red-500">OUT: ${tglOut}</p></td>
-              <td class="p-3 text-xs">
-                <p class="font-semibold">${row.Departemen || '-'} - ${row.Divisi || '-'}</p>
-                <p>📧 ${row.Email_Workspace || '-'}</p>
-                <p>📶 Wi-Fi: ${row.User_Wifi || '-'}</p>
-                <p>👆 Finger: ${row.ID_Finger || '-'}</p>
-              </td>
+              <td class="p-3 text-xs"><p class="font-semibold">${row.Departemen || '-'} - ${row.Divisi || '-'}</p><p>📧 ${row.Email_Workspace || '-'}</p><p>📶 Wi-Fi: ${row.User_Wifi || '-'}</p><p>👆 Finger: ${row.ID_Finger || '-'}</p></td>
               <td class="p-3 text-center">${wBadge}</td>
               <td class="p-3 w-32">${getProgressBar(row.Progress_Percent)}</td>
               <td class="p-3">
@@ -214,19 +199,75 @@
               </td>
             </tr>`;
         });
+        
+        // Populate Master Data Select Options
+        populateSelect('selDept', currentMaster.dept);
+        populateSelect('selDiv', currentMaster.div);
+        
       } catch (err) { tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Error memuat data</td></tr>`; }
     }
 
-    async function postData(payload, btn) {
-      let txt = btn.innerText; btn.innerText = "..."; btn.disabled = true;
+    async function postData(payload, btn = null) {
+      let txt = ""; 
+      if(btn) { txt = btn.innerText; btn.innerText = "..."; btn.disabled = true; }
       try {
         const res = await fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
         const result = await res.json();
         if(result.success) loadData(); else alert("Error: " + result.error);
-      } catch (err) { alert("Gagal koneksi"); }
-      finally { btn.innerText = txt; btn.disabled = false; }
+      } catch (err) { alert("Gagal koneksi server"); }
+      finally { if(btn) { btn.innerText = txt; btn.disabled = false; } }
     }
 
+    // --- MANAJEMEN MASTER DATA (DROPDOWN) ---
+    function populateSelect(selId, dataArray) {
+      const sel = document.getElementById(selId);
+      sel.innerHTML = `<option value="">-- Pilih --</option>`;
+      dataArray.forEach(item => sel.innerHTML += `<option value="${item}">${item}</option>`);
+      sel.innerHTML += `<option value="custom" class="font-bold text-blue-600">+ Tambah Baru...</option>`;
+    }
+
+    function openMasterModal() {
+      const lDept = document.getElementById('listDept');
+      const lDiv = document.getElementById('listDiv');
+      lDept.innerHTML = ''; lDiv.innerHTML = '';
+      
+      currentMaster.dept.forEach(val => {
+        lDept.innerHTML += `<li class="flex justify-between items-center bg-white p-2 rounded shadow-sm border"><span>${val}</span> <button onclick="deleteMasterData('dept', '${val}')" class="text-red-500 hover:bg-red-100 px-2 rounded">❌</button></li>`;
+      });
+      currentMaster.div.forEach(val => {
+        lDiv.innerHTML += `<li class="flex justify-between items-center bg-white p-2 rounded shadow-sm border"><span>${val}</span> <button onclick="deleteMasterData('divisi', '${val}')" class="text-red-500 hover:bg-red-100 px-2 rounded">❌</button></li>`;
+      });
+      
+      document.getElementById('modalMaster').classList.remove('hidden');
+    }
+    
+    function closeMasterModal() { document.getElementById('modalMaster').classList.add('hidden'); }
+    
+    function deleteMasterData(type, value) {
+      if(confirm(`Hapus opsi "${value}" dari daftar?`)) {
+        postData({ action: 'deleteMaster', type: type, value: value });
+        closeMasterModal();
+      }
+    }
+
+    function checkCustomOption(selId, inpId) {
+      const sel = document.getElementById(selId);
+      const inp = document.getElementById(inpId);
+      if(sel.value === "custom") { inp.classList.remove("hidden"); inp.value = ""; inp.focus(); } 
+      else { inp.classList.add("hidden"); inp.value = sel.value; }
+    }
+
+    function setDropdownValue(selId, inpId, val) {
+      const sel = document.getElementById(selId);
+      const inp = document.getElementById(inpId);
+      inp.value = val || "";
+      if(!val) { sel.value = ""; inp.classList.add("hidden"); return; }
+      let found = Array.from(sel.options).some(opt => opt.value === val);
+      if(found) { sel.value = val; inp.classList.add("hidden"); } 
+      else { sel.value = "custom"; inp.classList.remove("hidden"); }
+    }
+
+    // --- MANAJEMEN KARYAWAN ---
     function openFormModal(rowIndex = null) {
       const isEdit = rowIndex !== null;
       document.getElementById('formTitle').innerText = isEdit ? "Edit Data Karyawan" : "Onboarding Baru";
@@ -234,7 +275,7 @@
       document.getElementById('formRowIndex').value = rowIndex || '';
       
       if(isEdit) {
-        const row = currentData.find(r => r.rowIndex === rowIndex);
+        const row = currentEmployees.find(r => r.rowIndex === rowIndex);
         document.getElementById('inpId').value = row.ID_Karyawan || '';
         document.getElementById('inpNama').value = row.Nama_Lengkap || '';
         document.getElementById('inpEmail').value = row.Email_Workspace || '';
@@ -262,15 +303,14 @@
         rowIndex: rowIndex ? parseInt(rowIndex) : null,
         idKaryawan: document.getElementById('inpId').value, 
         nama: document.getElementById('inpNama').value,
-        departemen: document.getElementById('inpDept').value,
-        divisi: document.getElementById('inpDiv').value,
+        departemen: document.getElementById('inpDept').value.toUpperCase(), // Paksa jadi huruf besar
+        divisi: document.getElementById('inpDiv').value.toUpperCase(),
         email: document.getElementById('inpEmail').value, 
         userWifi: document.getElementById('inpWifi').value,
         idFinger: document.getElementById('inpFinger').value,
         tglOnboarding: document.getElementById('inpTglIn').value, 
         tglOffboarding: document.getElementById('inpTglOut').value
       };
-      // VALIDASI: Hanya Nama Lengkap yang wajib diisi
       if(!payload.nama) return alert("Nama Lengkap wajib diisi!");
       
       postData(payload, document.getElementById('btnSubmitForm'));
@@ -278,21 +318,18 @@
     }
 
     function deleteRow(rowIndex) {
-      if(confirm("Hapus data karyawan ini secara permanen dari database?")) {
-        postData({ action: 'deleteKaryawan', rowIndex: parseInt(rowIndex) }, document.createElement('button'));
-      }
+      if(confirm("Hapus karyawan permanen?")) postData({ action: 'deleteKaryawan', rowIndex: parseInt(rowIndex) });
     }
 
     function openClearanceModal(rowIndex) {
-      const row = currentData.find(r => r.rowIndex === rowIndex);
+      const row = currentEmployees.find(r => r.rowIndex === rowIndex);
       document.getElementById('clearanceRowIndex').value = row.rowIndex;
       document.getElementById('modalName').innerText = row.Nama_Lengkap;
       document.getElementById('modalEmail').innerText = row.Email_Workspace || 'Tidak ada email';
       document.getElementById('historyLog').innerText = row.History_Log || "Belum ada history.";
       
-      // Update label di checklist kelola
       document.getElementById('lblFinger').innerText = row.ID_Finger ? `Fingerprint [ID: ${row.ID_Finger}] Dihapus` : `Fingerprint Dihapus`;
-      document.getElementById('lblWifi').innerText = row.User_Wifi ? `Wi-Fi [User: ${row.User_Wifi}] Dihapus` : `Wi-Fi (Winbox) Dihapus`;
+      document.getElementById('lblWifi').innerText = row.User_Wifi ? `Wi-Fi [User: ${row.User_Wifi}] Dihapus` : `Wi-Fi Dihapus`;
 
       document.getElementById('checkFinger').checked = row.Status_Finger === true;
       document.getElementById('checkWifi').checked = row.Status_Wifi === true;
@@ -312,7 +349,7 @@
     function closeClearanceModal() { document.getElementById('modalClearance').classList.add('hidden'); }
     
     function suspendWorkspace() {
-      if(!confirm("Suspend akun Google Workspace ini?")) return;
+      if(!confirm("Suspend akun Workspace ini?")) return;
       postData({ action: 'suspendWorkspace', rowIndex: parseInt(document.getElementById('clearanceRowIndex').value), email: document.getElementById('modalEmail').innerText }, document.getElementById('btnSuspend'));
       closeClearanceModal();
     }
