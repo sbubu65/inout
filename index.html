@@ -8,6 +8,7 @@
   <style>
     .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .active-dept { background-color: #eff6ff; border-left: 4px solid #2563eb; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans pb-10">
@@ -48,32 +49,33 @@
     </div>
   </div>
 
-  <!-- Modal Kelola Master Data (Divisi & Dept) -->
+  <!-- Modal Kelola Master Data (Berelasi) -->
   <div id="modalMaster" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center backdrop-blur-sm z-50">
-    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-3xl">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-xl font-bold text-gray-800">⚙️ Kelola Divisi & Departemen</h3>
         <button onclick="closeMasterModal()" class="text-gray-500 hover:text-red-500 font-bold text-xl">&times;</button>
       </div>
+      <p class="text-xs text-gray-500 mb-4">Pilih Departemen di sebelah kiri untuk melihat dan mengelola Divisi di dalamnya.</p>
       
       <div class="grid grid-cols-2 gap-6">
-        <!-- Area Departemen -->
+        <!-- Area Departemen (Parent) -->
         <div class="border rounded p-3 bg-gray-50 flex flex-col h-[400px]">
-          <h4 class="font-bold text-gray-700 mb-3 border-b pb-2">🏢 Departemen</h4>
+          <h4 class="font-bold text-gray-700 mb-3 border-b pb-2">🏢 1. Departemen</h4>
           <div class="flex gap-2 mb-3">
-            <input type="text" id="inpNewDept" class="w-full border p-1.5 rounded text-sm focus:ring-blue-200" placeholder="Ketik Dept Baru...">
+            <input type="text" id="inpNewDept" class="w-full border p-1.5 rounded text-sm focus:ring-blue-200" placeholder="Tambah Dept Baru...">
             <button onclick="addMasterData('dept')" class="bg-blue-600 text-white px-3 py-1.5 rounded font-bold hover:bg-blue-700">+</button>
           </div>
-          <ul id="listDept" class="space-y-2 overflow-y-auto text-sm flex-1 pr-1"></ul>
+          <ul id="listDept" class="space-y-1 overflow-y-auto text-sm flex-1 pr-1 cursor-pointer"></ul>
         </div>
-        <!-- Area Divisi -->
+        <!-- Area Divisi (Child) -->
         <div class="border rounded p-3 bg-gray-50 flex flex-col h-[400px]">
-          <h4 class="font-bold text-gray-700 mb-3 border-b pb-2">👥 Divisi</h4>
+          <h4 class="font-bold text-gray-700 mb-3 border-b pb-2 flex justify-between"><span>👥 2. Divisi</span> <span id="lblActiveDept" class="text-xs font-normal text-blue-600 bg-blue-100 px-2 py-0.5 rounded">Pilih Dept Dulu</span></h4>
           <div class="flex gap-2 mb-3">
-            <input type="text" id="inpNewDiv" class="w-full border p-1.5 rounded text-sm focus:ring-blue-200" placeholder="Ketik Divisi Baru...">
-            <button onclick="addMasterData('divisi')" class="bg-blue-600 text-white px-3 py-1.5 rounded font-bold hover:bg-blue-700">+</button>
+            <input type="text" id="inpNewDiv" class="w-full border p-1.5 rounded text-sm focus:ring-blue-200" placeholder="Tambah Divisi Baru..." disabled>
+            <button id="btnNewDiv" onclick="addMasterData('divisi')" class="bg-blue-600 text-white px-3 py-1.5 rounded font-bold hover:bg-blue-700 disabled:opacity-50" disabled>+</button>
           </div>
-          <ul id="listDiv" class="space-y-2 overflow-y-auto text-sm flex-1 pr-1"></ul>
+          <ul id="listDiv" class="space-y-1 overflow-y-auto text-sm flex-1 pr-1"></ul>
         </div>
       </div>
     </div>
@@ -90,15 +92,19 @@
         <div><label class="block text-xs font-medium text-gray-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label><input type="text" id="inpNama" class="w-full border p-2 rounded text-sm focus:ring-blue-200"></div>
       </div>
       
+      <!-- CASCADING DROPDOWN -->
       <div class="grid grid-cols-2 gap-4 mb-4">
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">Departemen</label>
-          <select id="selDept" onchange="checkCustomOption('selDept', 'inpDept')" class="w-full border p-2 rounded text-sm bg-white cursor-pointer"></select>
+          <select id="selDept" onchange="handleDeptChange()" class="w-full border p-2 rounded text-sm bg-white cursor-pointer"></select>
           <input type="text" id="inpDept" class="w-full border p-2 rounded text-sm mt-2 hidden" placeholder="Ketik Departemen Baru...">
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1">Divisi</label>
-          <select id="selDiv" onchange="checkCustomOption('selDiv', 'inpDiv')" class="w-full border p-2 rounded text-sm bg-white cursor-pointer"></select>
+          <!-- Disabled default sampai dept dipilih -->
+          <select id="selDiv" onchange="handleDivChange()" class="w-full border p-2 rounded text-sm bg-gray-100 cursor-not-allowed" disabled>
+            <option value="">-- Pilih Dept Dulu --</option>
+          </select>
           <input type="text" id="inpDiv" class="w-full border p-2 rounded text-sm mt-2 hidden" placeholder="Ketik Divisi Baru...">
         </div>
       </div>
@@ -164,9 +170,10 @@
 
   <script>
     // MASUKKAN URL WEB APP GAS ANDA DISINI
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzY8luQwi5ES28_O9OP2YAgxMgxo7dbUbI57QzYRIEhNkWG9PchZ6w8uu2yY5hSxc2z/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzIo8yrqBmHvzo8rFE0wXSYWnCPzNoqLLVT0c7hxFIzpfVyvghSF9RJA7osYGBdor44/exec";
     let currentEmployees = [];
-    let currentMaster = { dept: [], div: [] };
+    let currentMaster = { departments: [], mapping: {} };
+    let activeMasterDept = null; // State untuk UI Kelola Modal
 
     function getProgressBar(percent) {
       let color = percent == 100 ? 'bg-green-500' : (percent > 0 ? 'bg-yellow-400' : 'bg-gray-200');
@@ -180,7 +187,7 @@
         const res = await fetch(GAS_URL, { method: 'GET', redirect: 'follow' });
         const data = await res.json();
         currentEmployees = data.employees || [];
-        currentMaster = data.master || { dept: [], div: [] };
+        currentMaster = data.master || { departments: [], mapping: {} };
         
         tbody.innerHTML = currentEmployees.length ? '' : `<tr><td colspan="6" class="text-center p-4">Belum ada data.</td></tr>`;
         currentEmployees.forEach(row => {
@@ -198,119 +205,172 @@
               <td class="p-3 w-32">${getProgressBar(row.Progress_Percent)}</td>
               <td class="p-3">
                 <div class="flex gap-1 justify-center">
-                  <button onclick='openClearanceModal(${row.rowIndex})' class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold hover:bg-blue-600 hover:text-white" title="Kelola Akses">Kelola</button>
-                  <button onclick='openFormModal(${row.rowIndex})' class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold hover:bg-yellow-500 hover:text-white" title="Edit">✏️</button>
-                  <button onclick='deleteRow(${row.rowIndex})' class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold hover:bg-red-600 hover:text-white" title="Hapus">🗑️</button>
+                  <button onclick='openClearanceModal(${row.rowIndex})' class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold hover:bg-blue-600" title="Kelola Akses">Kelola</button>
+                  <button onclick='openFormModal(${row.rowIndex})' class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold hover:bg-yellow-500" title="Edit">✏️</button>
+                  <button onclick='deleteRow(${row.rowIndex})' class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold hover:bg-red-600" title="Hapus">🗑️</button>
                 </div>
               </td>
             </tr>`;
         });
-        
-        populateSelect('selDept', currentMaster.dept);
-        populateSelect('selDiv', currentMaster.div);
       } catch (err) { tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Error memuat data</td></tr>`; }
     }
 
-    // --- MANAJEMEN MASTER DATA (DROPDOWN) ---
-    function populateSelect(selId, dataArray) {
-      const sel = document.getElementById(selId);
-      sel.innerHTML = `<option value="">-- Pilih --</option>`;
-      dataArray.forEach(item => sel.innerHTML += `<option value="${item}">${item}</option>`);
-      sel.innerHTML += `<option value="custom" class="font-bold text-blue-600">+ Tambah Baru...</option>`;
-    }
-
-    function renderMasterList() {
-      const lDept = document.getElementById('listDept');
-      const lDiv = document.getElementById('listDiv');
-      lDept.innerHTML = ''; lDiv.innerHTML = '';
-      
-      currentMaster.dept.forEach(val => {
-        lDept.innerHTML += `
-          <li class="flex justify-between items-center bg-white p-2 rounded shadow-sm border">
-            <span class="truncate pr-2">${val}</span> 
-            <div class="flex gap-1 shrink-0">
-              <button onclick="editMasterData('dept', '${val}')" class="text-yellow-600 hover:bg-yellow-100 px-1.5 rounded">✏️</button>
-              <button onclick="deleteMasterData('dept', '${val}')" class="text-red-500 hover:bg-red-100 px-1.5 rounded">❌</button>
-            </div>
-          </li>`;
-      });
-      currentMaster.div.forEach(val => {
-        lDiv.innerHTML += `
-          <li class="flex justify-between items-center bg-white p-2 rounded shadow-sm border">
-            <span class="truncate pr-2">${val}</span> 
-            <div class="flex gap-1 shrink-0">
-              <button onclick="editMasterData('divisi', '${val}')" class="text-yellow-600 hover:bg-yellow-100 px-1.5 rounded">✏️</button>
-              <button onclick="deleteMasterData('divisi', '${val}')" class="text-red-500 hover:bg-red-100 px-1.5 rounded">❌</button>
-            </div>
-          </li>`;
-      });
-    }
-
-    function openMasterModal() {
-      renderMasterList();
-      document.getElementById('modalMaster').classList.remove('hidden');
-    }
-    
-    function closeMasterModal() { document.getElementById('modalMaster').classList.add('hidden'); }
-    
+    // --- MANAJEMEN MASTER DATA (MODAL KELOLA) ---
     async function actMasterData(payload) {
       try {
         const res = await fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
         const result = await res.json();
         if(result.success) {
           await loadData();
-          renderMasterList();
+          renderMasterDept();
+          if(activeMasterDept) renderMasterDiv(activeMasterDept);
         } else alert("Error: " + result.error);
       } catch (err) { alert("Gagal koneksi server"); }
+    }
+
+    function openMasterModal() {
+      activeMasterDept = null;
+      renderMasterDept();
+      renderMasterDiv(null);
+      document.getElementById('modalMaster').classList.remove('hidden');
+    }
+    
+    function closeMasterModal() { document.getElementById('modalMaster').classList.add('hidden'); }
+
+    function renderMasterDept() {
+      const lDept = document.getElementById('listDept');
+      lDept.innerHTML = '';
+      currentMaster.departments.forEach(dept => {
+        const activeClass = dept === activeMasterDept ? 'active-dept' : 'bg-white hover:bg-gray-100';
+        lDept.innerHTML += `
+          <li onclick="selectMasterDept('${dept}')" class="flex justify-between items-center p-2 rounded shadow-sm border ${activeClass} transition">
+            <span class="truncate pr-2 font-semibold">${dept}</span> 
+            <div class="flex gap-1 shrink-0">
+              <button onclick="event.stopPropagation(); editMasterData('dept', '${dept}')" class="text-yellow-600 hover:bg-yellow-100 px-1.5 rounded">✏️</button>
+              <button onclick="event.stopPropagation(); deleteMasterData('dept', '${dept}')" class="text-red-500 hover:bg-red-100 px-1.5 rounded">❌</button>
+            </div>
+          </li>`;
+      });
+    }
+
+    function selectMasterDept(dept) {
+      activeMasterDept = dept;
+      renderMasterDept();
+      renderMasterDiv(dept);
+    }
+
+    function renderMasterDiv(dept) {
+      const lDiv = document.getElementById('listDiv');
+      const inpNewDiv = document.getElementById('inpNewDiv');
+      const btnNewDiv = document.getElementById('btnNewDiv');
+      const lblActive = document.getElementById('lblActiveDept');
+      
+      lDiv.innerHTML = '';
+      if(!dept) {
+        lblActive.innerText = "Pilih Dept Dulu";
+        lblActive.className = "text-xs font-normal text-red-600 bg-red-100 px-2 py-0.5 rounded";
+        inpNewDiv.disabled = true; btnNewDiv.disabled = true;
+        return;
+      }
+      
+      lblActive.innerText = dept;
+      lblActive.className = "text-xs font-normal text-green-700 bg-green-100 px-2 py-0.5 rounded";
+      inpNewDiv.disabled = false; btnNewDiv.disabled = false;
+
+      const divs = currentMaster.mapping[dept] || [];
+      if(divs.length === 0) {
+        lDiv.innerHTML = `<li class="text-xs text-gray-500 text-center p-4">Belum ada divisi di departemen ini.</li>`;
+      } else {
+        divs.forEach(div => {
+          lDiv.innerHTML += `
+            <li class="flex justify-between items-center bg-white p-2 rounded shadow-sm border">
+              <span class="truncate pr-2">${div}</span> 
+              <div class="flex gap-1 shrink-0">
+                <button onclick="editMasterData('divisi', '${div}')" class="text-yellow-600 hover:bg-yellow-100 px-1.5 rounded">✏️</button>
+                <button onclick="deleteMasterData('divisi', '${div}')" class="text-red-500 hover:bg-red-100 px-1.5 rounded">❌</button>
+              </div>
+            </li>`;
+        });
+      }
     }
 
     function addMasterData(type) {
       const inp = document.getElementById(type === 'dept' ? 'inpNewDept' : 'inpNewDiv');
       const val = inp.value.trim().toUpperCase();
       if(!val) return;
-      inp.value = ''; // Kosongkan input setelah enter/klik
-      actMasterData({ action: 'addMaster', type: type, value: val });
+      inp.value = '';
+      if (type === 'dept') actMasterData({ action: 'addMasterDept', dept: val });
+      else if (type === 'divisi') actMasterData({ action: 'addMasterDiv', dept: activeMasterDept, div: val });
     }
 
     function editMasterData(type, oldVal) {
       const newVal = prompt(`Edit nama ${type === 'dept' ? 'Departemen' : 'Divisi'} "${oldVal}":`, oldVal);
       if(newVal && newVal.trim().toUpperCase() !== oldVal) {
-         actMasterData({ action: 'editMaster', type: type, oldValue: oldVal, newValue: newVal.trim().toUpperCase() });
+        if(type === 'dept') {
+          actMasterData({ action: 'editMasterDept', oldValue: oldVal, newValue: newVal.trim().toUpperCase() });
+          activeMasterDept = newVal.trim().toUpperCase(); // update status aktif
+        } else {
+          actMasterData({ action: 'editMasterDiv', dept: activeMasterDept, oldValue: oldVal, newValue: newVal.trim().toUpperCase() });
+        }
       }
     }
 
     function deleteMasterData(type, value) {
-      if(confirm(`Hapus opsi "${value}" dari daftar dropdown?`)) {
-         actMasterData({ action: 'deleteMaster', type: type, value: value });
+      if(confirm(`Hapus opsi "${value}"?`)) {
+        if(type === 'dept') {
+          actMasterData({ action: 'deleteMasterDept', dept: value });
+          if(activeMasterDept === value) activeMasterDept = null;
+        } else {
+          actMasterData({ action: 'deleteMasterDiv', dept: activeMasterDept, div: value });
+        }
       }
     }
 
-    function checkCustomOption(selId, inpId) {
+    // --- FORM CASCADING DROPDOWN LOGIC ---
+    function populateDropdown(selId, arrayOptions) {
       const sel = document.getElementById(selId);
-      const inp = document.getElementById(inpId);
-      if(sel.value === "custom") { inp.classList.remove("hidden"); inp.value = ""; inp.focus(); } 
-      else { inp.classList.add("hidden"); inp.value = sel.value; }
+      sel.innerHTML = `<option value="">-- Pilih --</option>`;
+      arrayOptions.forEach(opt => sel.innerHTML += `<option value="${opt}">${opt}</option>`);
+      sel.innerHTML += `<option value="custom" class="font-bold text-blue-600">+ Tambah Baru...</option>`;
     }
 
-    function setDropdownValue(selId, inpId, val) {
-      const sel = document.getElementById(selId);
-      const inp = document.getElementById(inpId);
-      inp.value = val || "";
-      if(!val) { sel.value = ""; inp.classList.add("hidden"); return; }
-      let found = Array.from(sel.options).some(opt => opt.value === val);
-      if(found) { sel.value = val; inp.classList.add("hidden"); } 
-      else { sel.value = "custom"; inp.classList.remove("hidden"); }
+    function handleDeptChange() {
+      const selDept = document.getElementById('selDept');
+      const inpDept = document.getElementById('inpDept');
+      const selDiv = document.getElementById('selDiv');
+      const inpDiv = document.getElementById('inpDiv');
+
+      if (selDept.value === "custom") {
+        // Mode tambah Dept baru manual
+        inpDept.classList.remove("hidden"); inpDept.value = ""; inpDept.focus();
+        // Divisi otomatis harus input manual karena dept-nya belum ada
+        selDiv.innerHTML = `<option value="custom">-- Input Divisi Manual --</option>`;
+        selDiv.disabled = true; selDiv.className = "w-full border p-2 rounded text-sm bg-gray-100 cursor-not-allowed";
+        inpDiv.classList.remove("hidden"); inpDiv.value = "";
+      } else if (selDept.value === "") {
+        // Dept kosong, reset Divisi
+        inpDept.classList.add("hidden"); inpDept.value = "";
+        selDiv.innerHTML = `<option value="">-- Pilih Dept Dulu --</option>`;
+        selDiv.disabled = true; selDiv.className = "w-full border p-2 rounded text-sm bg-gray-100 cursor-not-allowed";
+        inpDiv.classList.add("hidden"); inpDiv.value = "";
+      } else {
+        // Dept dipilih, render Divisi yang terhubung
+        inpDept.classList.add("hidden"); inpDept.value = selDept.value;
+        const availableDivs = currentMaster.mapping[selDept.value] || [];
+        selDiv.disabled = false; selDiv.className = "w-full border p-2 rounded text-sm bg-white cursor-pointer";
+        populateDropdown('selDiv', availableDivs);
+        inpDiv.classList.add("hidden"); inpDiv.value = "";
+      }
     }
 
-    // --- MANAJEMEN KARYAWAN ---
-    async function postData(payload, btn) {
-      let txt = btn.innerText; btn.innerText = "..."; btn.disabled = true;
-      try {
-        const res = await fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-        const result = await res.json();
-        if(result.success) loadData(); else alert("Error: " + result.error);
-      } catch (err) { alert("Gagal koneksi"); }
-      finally { btn.innerText = txt; btn.disabled = false; }
+    function handleDivChange() {
+      const selDiv = document.getElementById('selDiv');
+      const inpDiv = document.getElementById('inpDiv');
+      if (selDiv.value === "custom") {
+        inpDiv.classList.remove("hidden"); inpDiv.value = ""; inpDiv.focus();
+      } else {
+        inpDiv.classList.add("hidden"); inpDiv.value = selDiv.value;
+      }
     }
 
     function openFormModal(rowIndex = null) {
@@ -318,6 +378,9 @@
       document.getElementById('formTitle').innerText = isEdit ? "Edit Data Karyawan" : "Onboarding Baru";
       document.getElementById('wrapTglOut').style.display = isEdit ? "block" : "none";
       document.getElementById('formRowIndex').value = rowIndex || '';
+      
+      // Load semua opsi Departemen
+      populateDropdown('selDept', currentMaster.departments);
       
       if(isEdit) {
         const row = currentEmployees.find(r => r.rowIndex === rowIndex);
@@ -329,43 +392,76 @@
         document.getElementById('inpTglIn').value = row.Tgl_Onboarding ? row.Tgl_Onboarding.split('T')[0] : '';
         document.getElementById('inpTglOut').value = row.Tgl_Offboarding ? row.Tgl_Offboarding.split('T')[0] : '';
         
-        setDropdownValue('selDept', 'inpDept', row.Departemen);
-        setDropdownValue('selDiv', 'inpDiv', row.Divisi);
+        // Setup dropdown berjenjang untuk edit
+        const selDept = document.getElementById('selDept');
+        if (currentMaster.departments.includes(row.Departemen)) {
+          selDept.value = row.Departemen;
+          handleDeptChange(); // Otomatis render opsi Divisi
+          
+          const selDiv = document.getElementById('selDiv');
+          if (currentMaster.mapping[row.Departemen] && currentMaster.mapping[row.Departemen].includes(row.Divisi)) {
+            selDiv.value = row.Divisi;
+            handleDivChange(); // Sembunyikan input custom divisi
+          } else {
+            selDiv.value = "custom";
+            handleDivChange();
+            document.getElementById('inpDiv').value = row.Divisi || '';
+          }
+        } else {
+          // Jika Dept nya aneh/tidak ada di master
+          selDept.value = "custom";
+          handleDeptChange();
+          document.getElementById('inpDept').value = row.Departemen || '';
+          document.getElementById('inpDiv').value = row.Divisi || '';
+        }
       } else {
         ['inpId','inpNama','inpEmail','inpWifi','inpFinger','inpTglIn','inpTglOut'].forEach(id => document.getElementById(id).value = '');
-        setDropdownValue('selDept', 'inpDept', '');
-        setDropdownValue('selDiv', 'inpDiv', '');
+        document.getElementById('selDept').value = "";
+        handleDeptChange(); // Reset Divisi ke disable
       }
       document.getElementById('modalForm').classList.remove('hidden');
     }
     
     function closeFormModal() { document.getElementById('modalForm').classList.add('hidden'); }
     
+    async function postFormAndData(payload, btn) {
+      let txt = btn.innerText; btn.innerText = "..."; btn.disabled = true;
+      try {
+        const res = await fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+        const result = await res.json();
+        if(result.success) loadData(); else alert("Error: " + result.error);
+      } catch (err) { alert("Gagal koneksi"); }
+      finally { btn.innerText = txt; btn.disabled = false; }
+    }
+
     function submitForm() {
       const rowIndex = document.getElementById('formRowIndex').value;
+      const inpDeptValue = document.getElementById('inpDept').value || document.getElementById('selDept').value;
+      const inpDivValue = document.getElementById('inpDiv').value || document.getElementById('selDiv').value;
+
       const payload = {
         action: rowIndex ? 'editKaryawan' : 'addOnboarding',
         rowIndex: rowIndex ? parseInt(rowIndex) : null,
         idKaryawan: document.getElementById('inpId').value, 
         nama: document.getElementById('inpNama').value,
-        departemen: document.getElementById('inpDept').value.toUpperCase(),
-        divisi: document.getElementById('inpDiv').value.toUpperCase(),
+        departemen: inpDeptValue.toUpperCase(),
+        divisi: inpDivValue.toUpperCase(),
         email: document.getElementById('inpEmail').value, 
         userWifi: document.getElementById('inpWifi').value,
         idFinger: document.getElementById('inpFinger').value,
         tglOnboarding: document.getElementById('inpTglIn').value, 
         tglOffboarding: document.getElementById('inpTglOut').value
       };
-      if(!payload.nama) return alert("Nama Lengkap wajib diisi!");
       
-      postData(payload, document.getElementById('btnSubmitForm'));
+      if(!payload.nama) return alert("Nama Lengkap wajib diisi!");
+      if(payload.departemen === "CUSTOM" || payload.divisi === "CUSTOM") return alert("Nama Departemen/Divisi tidak valid!");
+      
+      postFormAndData(payload, document.getElementById('btnSubmitForm'));
       closeFormModal();
     }
 
     function deleteRow(rowIndex) {
-      if(confirm("Hapus karyawan permanen?")) {
-        postData({ action: 'deleteKaryawan', rowIndex: parseInt(rowIndex) }, document.createElement('button'));
-      }
+      if(confirm("Hapus karyawan permanen?")) postFormAndData({ action: 'deleteKaryawan', rowIndex: parseInt(rowIndex) }, document.createElement('button'));
     }
 
     function openClearanceModal(rowIndex) {
@@ -397,12 +493,12 @@
     
     function suspendWorkspace() {
       if(!confirm("Suspend akun Workspace ini?")) return;
-      postData({ action: 'suspendWorkspace', rowIndex: parseInt(document.getElementById('clearanceRowIndex').value), email: document.getElementById('modalEmail').innerText }, document.getElementById('btnSuspend'));
+      postFormAndData({ action: 'suspendWorkspace', rowIndex: parseInt(document.getElementById('clearanceRowIndex').value), email: document.getElementById('modalEmail').innerText }, document.getElementById('btnSuspend'));
       closeClearanceModal();
     }
 
     function saveChecklist() {
-      postData({ action: 'updateChecklist', rowIndex: parseInt(document.getElementById('clearanceRowIndex').value), finger: document.getElementById('checkFinger').checked, wifi: document.getElementById('checkWifi').checked, tglOffboarding: document.getElementById('offboardDate').value, notes: document.getElementById('inputNotes').value }, document.getElementById('btnSaveChecklist'));
+      postFormAndData({ action: 'updateChecklist', rowIndex: parseInt(document.getElementById('clearanceRowIndex').value), finger: document.getElementById('checkFinger').checked, wifi: document.getElementById('checkWifi').checked, tglOffboarding: document.getElementById('offboardDate').value, notes: document.getElementById('inputNotes').value }, document.getElementById('btnSaveChecklist'));
       closeClearanceModal();
     }
 
